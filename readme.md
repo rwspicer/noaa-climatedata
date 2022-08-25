@@ -37,11 +37,11 @@ response = climatedata.services.data.call(
 )
 ```
 
-`climatedata.formats` and `climate.utilities` also provide functions for 
+`climatedata.formats` and `climatedata.utilities` also provide functions for 
 collating, converting and saving responses to useful formats. 
 These functions typically take the service function and keywords filters as 
 some arguments. See the documentationin `climatedata.formats` and 
-`climate.utilities`  for more info. For example to get all of the data for a
+`climatedata.utilities`  for more info. For example to get all of the data for a
 site.  
 
 ```
