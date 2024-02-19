@@ -6,6 +6,27 @@ from . import services
 import copy
 from datetime import datetime
 
+class MaxAttemptError(Exception):
+    """Exception raised if max attempts exceeded, likely due to server-side error"""
+    pass
+
+
+def attempt(callback, max_tries=10, verbose=False, **kwargs):
+    """
+    """
+    success = False
+    for idx in range(1,max_tries):
+        if verbose: print('attempt %s' % idx)
+        try:
+            rsp = callback(**kwargs)
+            success = True
+            break
+        except services.generic.BadResponseError as e:
+            pass
+    if not success:
+        raise MaxAttemptError('attempts exceeded')
+    return rsp
+
 def depaginate(callback, **kwargs):
     """De-paginates multi page results, calls callback multiple times
     until all pages of data have been retrieves and merges results into a single
@@ -27,6 +48,11 @@ def depaginate(callback, **kwargs):
 
     j_init = callback(**kwargs) # INIT JSON
     # print(j_init['metadata']['resultset'])
+    # print(j_init)
+    if j_init == {}:
+        return {
+            'metadata':{}, 'results':[]
+        }
     count = j_init['metadata']['resultset']['count']
     limit = j_init['metadata']['resultset']['limit']
     offset = j_init['metadata']['resultset']['offset'] + limit
@@ -35,8 +61,11 @@ def depaginate(callback, **kwargs):
 
     while offset <= count:
         kwargs['offset'] =  offset
-        j_next = callback(**kwargs) # NEXT JSON
-        j_com['results'] +=j_next['results']
+        # print ('offset %s' % offset)
+
+        j_next = attempt(callback, 20, **kwargs)
+        
+        j_com['results'] += j_next['results']
         offset+=limit
 
     j_com['metadata']['resultset']['limit']=count
@@ -73,10 +102,12 @@ def get_data_for_temporal_extent(callback, **kwargs):
 
     results = []
 
+    # data_missing = []
     for dr in date_ranges:
         # print(dr)
         kwargs['startdate'] = dr[0].strftime( '%Y-%m-%d')
         kwargs['enddate'] = dr[1].strftime( '%Y-%m-%d')
+
         rsp = depaginate(callback, **kwargs)
         results += rsp['results']
 
@@ -84,7 +115,10 @@ def get_data_for_temporal_extent(callback, **kwargs):
         'metadata': {
             'resultset': {
                 'offset': 1, 'count': len(results), 'limit': len(results)
-                }
+                },
+            # 'missing_ranges': [
+            #     (dr[0].strftime( '%Y-%m-%d'),dr[1].strftime( '%Y-%m-%d')) for dr in data_missing
+            # ]
             }, 
         'results':results
     }

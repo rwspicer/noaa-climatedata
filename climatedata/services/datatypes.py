@@ -19,13 +19,13 @@ filters.update(globals.filters)
 aliases = {
 }
 
-def call(**kwargs):
-    """calls service to get daily waterdata
+def call(*args, **kwargs):
+    """calls service to get data types
 
     Parameters
     ----------
     **kwargs:
-        keyword arguments defined in waterdata.services.daily_data.filters
+        keyword arguments defined in climatedata.services.datatypes.filters
 
     Returns
     -------
@@ -34,6 +34,13 @@ def call(**kwargs):
 
     """
     clean_args = globals.validate_args(kwargs, filters, aliases)
+
+    if len(args) == 1:
+        clean_args['specifically'] = args[0]
+    elif len(args) > 1:
+        raise generic.InvalidAPICallError(
+            'api cannot have multiple generic queries'
+    )
     
     response = generic.call('datatypes', **clean_args)
 

@@ -8,12 +8,16 @@ import copy
 import requests
 import validators
 
-
 from . import available
 
 class ValidURLError(Exception):
     """Exception raised if URL is invalid"""
     pass
+
+class InvalidAPICallError(Exception):
+    """Exception raised if URL is invalid"""
+    pass
+
 
 class BadResponseError(Exception):
     """Exception raised if HTTP response is not 200"""
@@ -82,11 +86,18 @@ def call(service, **kwargs):
         response text
     """
     base_url = available.get_url(service)
+
+    if 'specifically' in kwargs:
+        return execute(os.path.join(base_url, kwargs['specifically']), **kwargs)
     
     return execute(base_url, **kwargs)
 
     
 
+
+
+    
+    
 
     
 

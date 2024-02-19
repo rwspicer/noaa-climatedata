@@ -22,13 +22,13 @@ aliases = {
 }
 
 
-def call(**kwargs):
-    """calls service to get daily waterdata
+def call(*args, **kwargs):
+    """calls service to get data
 
     Parameters
     ----------
     **kwargs:
-        keyword arguments defined in waterdata.services.daily_data.filters
+        keyword arguments defined in climatedata.services.data.filters
 
     Returns
     -------
@@ -36,7 +36,12 @@ def call(**kwargs):
         format is defined by kwargs['format']
 
     """
+
+
     clean_args = globals.validate_args(kwargs, filters, aliases)
+
+    if len(args) != 0:
+        raise generic.InvalidAPICallError('data api cannot have generic query')
     
     response = generic.call('data', **clean_args)
 
